@@ -6,6 +6,9 @@ resource "aws_launch_configuration" "appsec-ec2" {
   image_id        = "ami-00448a337adc93c05"
   instance_type   = "t2.micro"
   security_groups = [aws_security_group.http_access.id]
+  metadata_options {
+    http_tokens = "required"
+  }
   user_data       = <<-EOF
               #!/bin/bash
               echo "Hello, World" > index.html
