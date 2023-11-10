@@ -4,22 +4,28 @@ on:
     branches:
     - "**"
   pull_request:
+
+permissions:
+  contents: read
+
 jobs:
-  build:
+  trivy:
     name: Build
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Run Trivy vulnerability scanner in fs mode
+    - name: Run Trivy vulnerability scanner in IaC mode
       uses: aquasecurity/trivy-action@master
       with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        trivy-config: trivy.yaml
+        scan-type: 'config'
+        hide-progress: false
         format: 'sarif'
         output: 'trivy-results.sarif'
+        exit-code: '1'
+        ignore-unfixed: true
+        severity: 'CRITICAL,HIGH,MEDIUM,LOW'
 
     - name: Upload trivy results to GHAS tab
       uses: github/codeql-action/upload-sarif@v2
