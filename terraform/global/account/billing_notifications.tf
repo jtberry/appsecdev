@@ -1,16 +1,3 @@
-# setup terraform required providers, needed to say Im using AWS
-terraform {
-  required_providers {
-    aws = {
-      source = "hashicorp/aws"
-    }
-  }
-}
-
-provider "aws" {
-  region = "us-west-2"
-}
-
 # a resource for a budget, want to not spend much.
 resource "aws_budgets_budget" "monthly_budget" {
   name              = "monthly-budget"
