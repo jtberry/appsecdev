@@ -13,6 +13,7 @@ resource "aws_security_group" "http_access" {
   name        = "terraform-example-instance"
   description = "a SG to allow testing for port 8080"
   ingress {
+    description = "http from ALB"
     from_port   = var.server_port
     to_port     = var.server_port
     protocol    = "tcp"
@@ -34,6 +35,7 @@ resource "aws_lb" "alb_terra_appsec" {
   load_balancer_type = "application"
   subnets            = data.aws_subnets.default.ids
   security_groups    = [aws_security_group.alb_SG.id]
+  drop_invalid_header_fields = true
 }
 
 resource "aws_lb_listener" "http" {
@@ -55,7 +57,9 @@ resource "aws_lb_listener" "http" {
 
 resource "aws_security_group" "alb_SG" {
   name = "terraform-appsec-alb" # Allow inbound HTTP requests
+  description = "Allow inbound HTTP request"
   ingress {
+    description = "http from internet"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -64,6 +68,7 @@ resource "aws_security_group" "alb_SG" {
 
   # Allow all outbound requests
   egress {
+    description = "traffic to net"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"

@@ -15,6 +15,9 @@ resource "aws_launch_configuration" "appsec-ec2" {
   metadata_options {
     http_tokens = "required"
   }
+  root_block_device {
+    encrypted = true
+  }
   user_data = <<-EOF
               #!/bin/bash
               echo "Hello, World" > index.html
