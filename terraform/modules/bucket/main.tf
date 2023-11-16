@@ -2,7 +2,7 @@ provider "aws"{
     region = "us-west-2"
 }
 
-resource "aws_s3_bucket" "terra-state"{
+resource "aws_s3_bucket" "terra_state"{
     bucket = "lock-state-for-terra"
     lifecycle {
      prevent_destroy = true
