@@ -11,7 +11,7 @@ data "aws_ami" "amazon-linux-2" {
 resource "aws_launch_configuration" "appsec-ec2" {
   image_id        = data.aws_ami.amazon-linux-2.id
   instance_type   = var.ami_size
-  security_groups = [aws_security_group.http_access.id]
+  security_groups = [aws_security_group.ec2_sg.id]
   /* associate_public_ip_address = false*/
   metadata_options {
     http_tokens = "required"
@@ -49,7 +49,7 @@ resource "aws_autoscaling_group" "scaling_ec2" {
 
   tag {
     key                 = "Name"
-    value               = "terr-web-app-ASG"
+    value               = "CyberChef-web-app-ASG"
     propagate_at_launch = true
   }
 }
