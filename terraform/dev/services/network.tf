@@ -1,7 +1,9 @@
+# fetching deafult vpc
 data "aws_vpc" "default" {
   default = true
 }
 
+# gathering data for the vpc subnets
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -9,8 +11,9 @@ data "aws_subnets" "default" {
   }
 }
 
-resource "aws_security_group" "http_access" {
-  name        = "terraform-example-instance"
+
+resource "aws_security_group" "ec2_sg" {
+  name        = "SG for EC2 instance allowing 8080"
   description = "a SG to allow testing for port 8080"
   ingress {
     description = "http from ALB"
@@ -38,8 +41,8 @@ resource "aws_security_group" "http_access" {
 
 
 
-resource "aws_lb" "alb_terra_appsec" {
-  name                       = "alb-terra-appsec"
+resource "aws_lb" "alb_appsec" {
+  name                       = "alb-appsec"
   load_balancer_type         = "application"
   subnets                    = data.aws_subnets.default.ids
   security_groups            = [aws_security_group.alb_SG.id]
@@ -47,7 +50,7 @@ resource "aws_lb" "alb_terra_appsec" {
 }
 
 resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.alb_terra_appsec.arn
+  load_balancer_arn = aws_lb.alb_appsec.arn
   port              = 80
   protocol          = "HTTP"
 
@@ -82,6 +85,11 @@ resource "aws_security_group" "alb_SG" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+output "security_group_id" {
+    description = "id of SG"
+    value = aws_security_group.alb_SG.id
 }
 
 resource "aws_lb_target_group" "asg" {

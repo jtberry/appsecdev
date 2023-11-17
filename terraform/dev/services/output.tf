@@ -1,4 +1,4 @@
 output "alb_dns_name" {
-  value       = aws_lb.alb_terra_appsec.dns_name
+  value       = aws_lb.alb_appsec.dns_name
   description = "The domain name of the load balancer"
 }
