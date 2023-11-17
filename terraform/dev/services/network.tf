@@ -19,6 +19,14 @@ resource "aws_security_group" "http_access" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  egress {
+    description = "traffic to net"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 #output "public_ip" {
@@ -31,10 +39,10 @@ resource "aws_security_group" "http_access" {
 
 
 resource "aws_lb" "alb_terra_appsec" {
-  name               = "alb-terra-appsec"
-  load_balancer_type = "application"
-  subnets            = data.aws_subnets.default.ids
-  security_groups    = [aws_security_group.alb_SG.id]
+  name                       = "alb-terra-appsec"
+  load_balancer_type         = "application"
+  subnets                    = data.aws_subnets.default.ids
+  security_groups            = [aws_security_group.alb_SG.id]
   drop_invalid_header_fields = true
 }
 
@@ -56,7 +64,7 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_security_group" "alb_SG" {
-  name = "terraform-appsec-alb" # Allow inbound HTTP requests
+  name        = "terraform-appsec-alb" # Allow inbound HTTP requests
   description = "Allow inbound HTTP request"
   ingress {
     description = "http from internet"
@@ -86,8 +94,8 @@ resource "aws_lb_target_group" "asg" {
     path                = "/"
     protocol            = "HTTP"
     matcher             = "200"
-    interval            = 15
-    timeout             = 3
+    interval            = 30
+    timeout             = 15
     healthy_threshold   = 2
     unhealthy_threshold = 2
   }

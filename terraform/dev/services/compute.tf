@@ -12,6 +12,7 @@ resource "aws_launch_configuration" "appsec-ec2" {
   image_id        = data.aws_ami.amazon-linux-2.id
   instance_type   = var.ami_size
   security_groups = [aws_security_group.http_access.id]
+  /* associate_public_ip_address = false*/
   metadata_options {
     http_tokens = "required"
   }
@@ -20,9 +21,13 @@ resource "aws_launch_configuration" "appsec-ec2" {
   }
   user_data = <<-EOF
               #!/bin/bash
-              echo "Hello, World" > index.html
+              sudo su
+              sudo wget https://github.com/gchq/CyberChef/releases/download/v10.5.2/CyberChef_v10.5.2.zip
+              sudo unzip CyberChef_v10.5.2.zip
+              cp CyberChef_v10.5.2.html index.html
               python3 -m http.server ${var.server_port}
               EOF
+
   lifecycle {
     create_before_destroy = true
   }
@@ -35,8 +40,12 @@ resource "aws_autoscaling_group" "scaling_ec2" {
   health_check_type    = "ELB"
   #availability_zones = ["us-west-2a"]
 
-  min_size = 1
+  min_size = 2
   max_size = 10
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tag {
     key                 = "Name"
