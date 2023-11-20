@@ -11,8 +11,30 @@ data "aws_subnets" "default" {
   }
 }
 
-
 resource "aws_security_group" "ec2_sg" {
+  name   = "ec2-eg1"
+  vpc_id = data.aws_vpc.default.id
+}
+
+resource "aws_security_group_rule" "ec2_ingress" {
+  type                     = "ingress"
+  from_port                = 8080
+  to_port                  = 8080
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.ec2_sg.id
+  source_security_group_id = aws_security_group.alb_SG.id
+}
+
+resource "aws_security_group_rule" "full_egress_ec2" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.ec2_sg.id
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
+/* resource "aws_security_group" "ec2_sg" {
   name        = "SG for EC2 instance allowing 8080"
   description = "a SG to allow testing for port 8080"
   ingress {
@@ -20,7 +42,8 @@ resource "aws_security_group" "ec2_sg" {
     from_port   = var.server_port
     to_port     = var.server_port
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.alb_SG.id]
+    #cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -30,16 +53,12 @@ resource "aws_security_group" "ec2_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-}
+} */
 
 #output "public_ip" {
 ##  value       = aws_instance.appsec-ec2.public_ip
 #  description = "The public IP address of the web server"
 #}
-
-
-
-
 
 resource "aws_lb" "alb_appsec" {
   name                       = "alb-appsec"
@@ -67,6 +86,29 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_security_group" "alb_SG" {
+  name   = "alb-eg1"
+  vpc_id = data.aws_vpc.default.id
+}
+
+resource "aws_security_group_rule" "alb_sg_ingress" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  security_group_id = aws_security_group.alb_SG.id
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
+resource "aws_security_group_rule" "egress_alb_traffic" {
+  type                     = "egress"
+  from_port                = 8080
+  to_port                  = 8080
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.alb_SG.id
+  source_security_group_id = aws_security_group.ec2_sg.id
+}
+
+/* resource "aws_security_group" "alb_SG" {
   name        = "terraform-appsec-alb" # Allow inbound HTTP requests
   description = "Allow inbound HTTP request"
   ingress {
@@ -80,23 +122,22 @@ resource "aws_security_group" "alb_SG" {
   # Allow all outbound requests
   egress {
     description = "traffic to net"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = var.server_port
+    to_port     = var.server_port
+    protocol    = "tcp"
+    source_security_group_id = aws_security_group.ec2_sg.id
+    # cidr_blocks = ["0.0.0.0/0"]
   }
-}
+} */
 
-output "security_group_id" {
-    description = "id of SG"
-    value = aws_security_group.alb_SG.id
-}
+
 
 resource "aws_lb_target_group" "asg" {
-  name     = "terraform-asg-example"
-  port     = var.server_port
-  protocol = "HTTP"
-  vpc_id   = data.aws_vpc.default.id
+  name                          = "terraform-asg-example"
+  port                          = var.server_port
+  protocol                      = "HTTP"
+  vpc_id                        = data.aws_vpc.default.id
+  load_balancing_algorithm_type = "round_robin"
 
   health_check {
     path                = "/"

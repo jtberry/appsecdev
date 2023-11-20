@@ -38,7 +38,8 @@ resource "aws_autoscaling_group" "scaling_ec2" {
   vpc_zone_identifier  = data.aws_subnets.default.ids
   target_group_arns    = [aws_lb_target_group.asg.arn]
   health_check_type    = "ELB"
-  #availability_zones = ["us-west-2a"]
+  #availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c"]
+
 
   min_size = 2
   max_size = 10
